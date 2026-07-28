@@ -1,0 +1,6 @@
+{
+  "name": "ExplorerNova",
+  "description": "Modern file manager featuring AI-powered Google search grounding per active folder, triple themes (Light, Dark, Steel), batch operations, drag-and-drop, cloud sync, and customizable keyboard shortcuts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
