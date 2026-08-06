@@ -148,7 +148,7 @@ export const SearchPane: React.FC<SearchPaneProps> = ({
           value={customQuery}
           onChange={(e) => setCustomQuery(e.target.value)}
           placeholder={`Refine web search for "${folderName}"...`}
-          className={`w-full pl-3 pr-8 py-2 text-xs rounded-xl border outline-none transition-all ${inputBg}`}
+          className={`w-full pl-3 pr-8 py-2 text-sm rounded-xl border outline-none transition-all ${inputBg}`}
         />
         <button
           type="submit"
@@ -161,7 +161,7 @@ export const SearchPane: React.FC<SearchPaneProps> = ({
       {loading ? (
         /* Loading Skeleton */
         <div className="space-y-3 py-6">
-          <div className="flex items-center justify-center gap-2 text-xs text-cyan-500 font-medium animate-pulse">
+          <div className="flex items-center justify-center gap-2 text-sm text-cyan-500 font-medium animate-pulse">
             <Sparkles className="w-4 h-4 animate-spin" />
             <span>Querying Google Search Grounding for "{folderName}"...</span>
           </div>
@@ -181,7 +181,7 @@ export const SearchPane: React.FC<SearchPaneProps> = ({
                 </span>
                 <span className="text-[10px] opacity-50 font-mono">Gemini 3.6 Flash</span>
               </div>
-              <p className="text-xs leading-relaxed opacity-90">{searchData.summary}</p>
+              <p className="text-sm leading-relaxed opacity-90">{searchData.summary}</p>
             </div>
           )}
 
@@ -228,7 +228,7 @@ export const SearchPane: React.FC<SearchPaneProps> = ({
                         href={item.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-bold text-xs hover:text-cyan-400 transition-colors line-clamp-2"
+                        className="font-bold text-sm hover:text-cyan-400 transition-colors line-clamp-2"
                       >
                         {item.title}
                       </a>
@@ -278,7 +278,7 @@ export const SearchPane: React.FC<SearchPaneProps> = ({
                 );
               })
             ) : (
-              <p className="text-xs opacity-50 italic px-1">No web search results available.</p>
+              <p className="text-sm opacity-50 italic px-1">No web search results available.</p>
             )}
           </div>
 
@@ -293,7 +293,7 @@ export const SearchPane: React.FC<SearchPaneProps> = ({
                 return (
                   <div
                     key={i}
-                    className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs ${cardBg}`}
+                    className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-sm ${cardBg}`}
                   >
                     <div className="truncate">
                       <p className="font-semibold truncate">{bm.title}</p>

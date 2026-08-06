@@ -32,7 +32,7 @@ export const FooterBar: React.FC<FooterBarProps> = ({
       : 'bg-[#334155] text-[#cbd5e1] border-[#475569]/40';
 
   return (
-    <footer className={`h-10 border-t px-4 flex items-center justify-between text-xs font-medium shrink-0 z-20 ${footerBg}`}>
+    <footer className={`h-10 border-t px-4 flex items-center justify-between text-sm font-medium shrink-0 z-20 ${footerBg}`}>
       {/* Left: Keyboard Shortcuts Bar */}
       <div className="flex items-center gap-3 overflow-x-auto py-1 scrollbar-none">
         <button

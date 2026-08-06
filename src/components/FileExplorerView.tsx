@@ -239,14 +239,14 @@ export const FileExplorerView: React.FC<FileExplorerViewProps> = ({
         <div className="absolute inset-0 z-40 bg-blue-600/20 backdrop-blur-sm border-2 border-dashed border-blue-500 rounded-3xl flex flex-col items-center justify-center p-6 text-center animate-pulse">
           <UploadCloud className="w-16 h-16 text-blue-500 mb-3" />
           <h3 className="text-xl font-bold">Drop Files Here to Upload</h3>
-          <p className="text-xs opacity-80 mt-1">
+          <p className="text-sm opacity-80 mt-1">
             Files will be imported directly into the current directory.
           </p>
         </div>
       )}
 
       {/* Sorting Controls Bar */}
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-current opacity-80 text-xs font-medium">
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-current opacity-80 text-sm font-medium">
         <div className="flex items-center gap-2">
           <span className="opacity-60">Sort by:</span>
           <button
@@ -280,7 +280,7 @@ export const FileExplorerView: React.FC<FileExplorerViewProps> = ({
           {selectedFileIds.size > 0 && (
             <button
               onClick={onClearSelection}
-              className="text-xs text-blue-500 hover:underline"
+              className="text-sm text-blue-500 hover:underline"
             >
               Clear selection ({selectedFileIds.size})
             </button>
@@ -296,20 +296,20 @@ export const FileExplorerView: React.FC<FileExplorerViewProps> = ({
           </div>
           <div>
             <h3 className="font-bold text-base">This folder is empty</h3>
-            <p className="text-xs opacity-60 mt-1">
+            <p className="text-sm opacity-60 mt-1">
               Create a new file, folder, or drag files from your computer to get started.
             </p>
           </div>
           <div className="flex items-center justify-center gap-2 pt-2">
             <button
               onClick={() => onOpenNewItemModal('file')}
-              className="px-4 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-500"
+              className="px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-500"
             >
               Create File
             </button>
             <button
               onClick={() => onOpenNewItemModal('folder')}
-              className="px-4 py-2 text-xs font-semibold rounded-xl border border-current/20 hover:bg-black/5 dark:hover:bg-white/5"
+              className="px-4 py-2 text-sm font-semibold rounded-xl border border-current/20 hover:bg-black/5 dark:hover:bg-white/5"
             >
               Create Folder
             </button>
@@ -379,7 +379,7 @@ export const FileExplorerView: React.FC<FileExplorerViewProps> = ({
                   <div className="transition-transform group-hover:scale-110">
                     {getIconForFile(file)}
                   </div>
-                  <span className="font-semibold text-xs truncate max-w-full leading-tight">
+                  <span className="font-semibold text-sm truncate max-w-full leading-tight">
                     {file.name}
                   </span>
                 </div>
@@ -424,7 +424,7 @@ export const FileExplorerView: React.FC<FileExplorerViewProps> = ({
                   }
                 }}
                 onContextMenu={(e) => handleContextMenu(e, file)}
-                className={`grid grid-cols-12 gap-2 px-4 py-3 items-center text-xs transition-colors cursor-pointer ${
+                className={`grid grid-cols-12 gap-2 px-4 py-3 items-center text-sm transition-colors cursor-pointer ${
                   isSelected ? cardSelected : cardBg
                 }`}
               >
@@ -471,7 +471,7 @@ export const FileExplorerView: React.FC<FileExplorerViewProps> = ({
       {contextMenu && (
         <div
           style={{ top: contextMenu.y, left: contextMenu.x }}
-          className="fixed z-50 w-52 py-1.5 rounded-2xl shadow-2xl border backdrop-blur-xl bg-white/95 dark:bg-zinc-900/95 border-slate-200 dark:border-zinc-800 text-xs text-slate-800 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-100"
+          className="fixed z-50 w-52 py-1.5 rounded-2xl shadow-2xl border backdrop-blur-xl bg-white/95 dark:bg-zinc-900/95 border-slate-200 dark:border-zinc-800 text-sm text-slate-800 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-100"
         >
           {contextMenu.targetFile ? (
             <>

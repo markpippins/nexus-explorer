@@ -55,7 +55,7 @@ export const NewItemModal: React.FC<NewItemModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold block mb-1.5 opacity-80">
+            <label className="text-sm font-semibold block mb-1.5 opacity-80">
               {type === 'folder' ? 'Folder Name' : 'File Name (e.g. notes.md, script.py)'}
             </label>
             <input
@@ -63,20 +63,20 @@ export const NewItemModal: React.FC<NewItemModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
-              className="w-full px-3.5 py-2 text-xs rounded-xl border border-current/20 bg-black/5 dark:bg-white/5 outline-none font-medium"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-current/20 bg-black/5 dark:bg-white/5 outline-none font-medium"
             />
           </div>
 
           {type === 'file' && (
             <div>
-              <label className="text-xs font-semibold block mb-1.5 opacity-80">
+              <label className="text-sm font-semibold block mb-1.5 opacity-80">
                 Initial Content (Optional)
               </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Type initial file body..."
-                className="w-full h-24 px-3.5 py-2 text-xs rounded-xl border border-current/20 bg-black/5 dark:bg-white/5 outline-none font-mono"
+                className="w-full h-24 px-3.5 py-2 text-sm rounded-xl border border-current/20 bg-black/5 dark:bg-white/5 outline-none font-mono"
               />
             </div>
           )}
@@ -85,13 +85,13 @@ export const NewItemModal: React.FC<NewItemModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold rounded-xl border border-current/20 hover:bg-black/5 dark:hover:bg-white/5"
+              className="px-4 py-2 text-sm font-semibold rounded-xl border border-current/20 hover:bg-black/5 dark:hover:bg-white/5"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md"
+              className="px-5 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md"
             >
               Create
             </button>
@@ -148,13 +148,13 @@ export const RenameModal: React.FC<RenameModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold block mb-1.5 opacity-80">New Name</label>
+            <label className="text-sm font-semibold block mb-1.5 opacity-80">New Name</label>
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               autoFocus
-              className="w-full px-3.5 py-2 text-xs rounded-xl border border-current/20 bg-black/5 dark:bg-white/5 outline-none font-medium"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-current/20 bg-black/5 dark:bg-white/5 outline-none font-medium"
             />
           </div>
 
@@ -162,13 +162,13 @@ export const RenameModal: React.FC<RenameModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold rounded-xl border border-current/20 hover:bg-black/5 dark:hover:bg-white/5"
+              className="px-4 py-2 text-sm font-semibold rounded-xl border border-current/20 hover:bg-black/5 dark:hover:bg-white/5"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md"
+              className="px-5 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md"
             >
               Rename
             </button>
@@ -228,7 +228,7 @@ export const TagModal: React.FC<TagModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold block mb-1.5 opacity-80">
+            <label className="text-sm font-semibold block mb-1.5 opacity-80">
               Tags (Comma separated, e.g. Dev, React, Priority)
             </label>
             <input
@@ -236,7 +236,7 @@ export const TagModal: React.FC<TagModalProps> = ({
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               autoFocus
-              className="w-full px-3.5 py-2 text-xs rounded-xl border border-current/20 bg-black/5 dark:bg-white/5 outline-none font-medium"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-current/20 bg-black/5 dark:bg-white/5 outline-none font-medium"
             />
           </div>
 
@@ -244,13 +244,13 @@ export const TagModal: React.FC<TagModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold rounded-xl border border-current/20 hover:bg-black/5 dark:hover:bg-white/5"
+              className="px-4 py-2 text-sm font-semibold rounded-xl border border-current/20 hover:bg-black/5 dark:hover:bg-white/5"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md"
+              className="px-5 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md"
             >
               Save Tags
             </button>

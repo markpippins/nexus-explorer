@@ -43,10 +43,10 @@ export const BatchOperationsBar: React.FC<BatchOperationsBarProps> = ({
       <div className={`p-3 rounded-2xl border backdrop-blur-xl flex items-center justify-between gap-3 animate-in slide-in-from-bottom-5 duration-200 ${barBg}`}>
         {/* Count badge */}
         <div className="flex items-center gap-2 pl-1 shrink-0">
-          <div className="w-7 h-7 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+          <div className="w-7 h-7 rounded-xl bg-blue-600 text-white font-bold text-sm flex items-center justify-center">
             {selectedFiles.length}
           </div>
-          <span className="text-xs font-semibold">
+          <span className="text-sm font-semibold">
             Item{selectedFiles.length > 1 ? 's' : ''} Selected
           </span>
         </div>
@@ -55,7 +55,7 @@ export const BatchOperationsBar: React.FC<BatchOperationsBarProps> = ({
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={onBatchTag}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-sm font-semibold bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
             <Tag className="w-3.5 h-3.5 text-blue-400" />
             <span>Tags</span>
@@ -63,7 +63,7 @@ export const BatchOperationsBar: React.FC<BatchOperationsBarProps> = ({
 
           <button
             onClick={onBatchMove}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-sm font-semibold bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
             <FolderInput className="w-3.5 h-3.5 text-amber-400" />
             <span>Move</span>
@@ -71,7 +71,7 @@ export const BatchOperationsBar: React.FC<BatchOperationsBarProps> = ({
 
           <button
             onClick={onBatchExport}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-sm font-semibold bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
             <span>Export</span>
@@ -79,7 +79,7 @@ export const BatchOperationsBar: React.FC<BatchOperationsBarProps> = ({
 
           <button
             onClick={onBatchDelete}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 text-white hover:bg-rose-500 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-sm font-semibold bg-rose-600 text-white hover:bg-rose-500 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Delete</span>
@@ -89,7 +89,7 @@ export const BatchOperationsBar: React.FC<BatchOperationsBarProps> = ({
         {/* Dismiss */}
         <button
           onClick={onClearSelection}
-          className="p-1.5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-xs opacity-60 hover:opacity-100"
+          className="p-1.5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 text-sm opacity-60 hover:opacity-100"
           title="Clear Selection"
         >
           <X className="w-4 h-4" />

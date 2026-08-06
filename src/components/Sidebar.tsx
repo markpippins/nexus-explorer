@@ -119,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onNavigateToFolder(folder.id);
                   onSelectTag(null);
                 }}
-                className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm cursor-pointer transition-colors ${
                   isSelected ? itemActive : itemHover
                 }`}
               >
@@ -172,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onNavigateToFolder(null);
             onSelectTag(null);
           }}
-          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-colors ${
             currentFolderId === null && !showFavoritesOnly && !showTrashOnly && !selectedTag
               ? itemActive
               : itemHover
@@ -189,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={onToggleFavoritesOnly}
-          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-colors ${
             showFavoritesOnly ? itemActive : itemHover
           }`}
         >
@@ -204,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={onToggleTrashOnly}
-          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-colors ${
             showTrashOnly ? itemActive : itemHover
           }`}
         >
@@ -223,7 +223,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
           <button
             onClick={() => onOpenNewItemModal('folder')}
-            className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-xs opacity-70 hover:opacity-100"
+            className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-sm opacity-70 hover:opacity-100"
             title="Create Folder"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -265,7 +265,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-3 mt-auto space-y-3">
         {/* Storage Bar */}
         <div className="p-3 rounded-2xl border border-current opacity-90 bg-black/5 dark:bg-white/5 space-y-2">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-sm">
             <span className="font-semibold opacity-80">Cloud Storage</span>
             <span className="text-[10px] opacity-60">{formatFileSize(totalSizeBytes)} / 15 GB</span>
           </div>
@@ -290,7 +290,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center gap-2">
               <Cloud className="w-4 h-4 text-cyan-400" />
               <div>
-                <p className="text-xs font-bold">Cloud Sync Status</p>
+                <p className="text-sm font-bold">Cloud Sync Status</p>
                 <p className="text-[10px] opacity-60">Auto Sync Active</p>
               </div>
             </div>

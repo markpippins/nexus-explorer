@@ -70,7 +70,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
             </div>
             <div>
               <h2 className="font-bold text-lg">Cloud Storage Synchronization</h2>
-              <p className="text-xs opacity-60">Cross-platform device pairing & live sync status</p>
+              <p className="text-sm opacity-60">Cross-platform device pairing & live sync status</p>
             </div>
           </div>
 
@@ -85,14 +85,14 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
         {/* Pairing Code for Cross-Platform Access */}
         <div className={`p-4 rounded-2xl border space-y-3 ${cardBg}`}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+            <span className="text-sm font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4" />
               Device Sync Pairing Code
             </span>
             <span className="text-[10px] opacity-60">Valid across iOS, Android & Desktop</span>
           </div>
 
-          <p className="text-xs opacity-80 leading-relaxed">
+          <p className="text-sm opacity-80 leading-relaxed">
             Use this secure pairing token on your mobile or second laptop to access your synchronized ExplorerNova files anywhere.
           </p>
 
@@ -100,7 +100,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
             <span>{config.pairingCode}</span>
             <button
               onClick={handleCopyCode}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-cyan-600 text-white hover:bg-cyan-500 flex items-center gap-1"
+              className="px-3 py-1.5 text-sm font-semibold rounded-lg bg-cyan-600 text-white hover:bg-cyan-500 flex items-center gap-1"
             >
               {copiedKey ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedKey ? 'Copied!' : 'Copy Code'}</span>
@@ -111,7 +111,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
         {/* Sync Controls & Storage Usage */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className={`p-4 rounded-2xl border space-y-3 ${cardBg}`}>
-            <span className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+            <span className="text-sm font-bold uppercase tracking-wider opacity-60 block">
               Auto Sync Status
             </span>
             <div className="flex items-center justify-between">
@@ -135,13 +135,13 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
           </div>
 
           <div className={`p-4 rounded-2xl border space-y-3 ${cardBg}`}>
-            <span className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+            <span className="text-sm font-bold uppercase tracking-wider opacity-60 block">
               Manual Sync Action
             </span>
             <button
               onClick={onTriggerSync}
               disabled={config.isSyncing}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-950/30"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-cyan-950/30"
             >
               <RefreshCw className={`w-4 h-4 ${config.isSyncing ? 'animate-spin' : ''}`} />
               <span>{config.isSyncing ? 'Syncing Files...' : 'Sync Now'}</span>
@@ -151,10 +151,10 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
 
         {/* Sync History Table */}
         <div className="space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider opacity-60 px-1">
+          <span className="text-sm font-bold uppercase tracking-wider opacity-60 px-1">
             Recent Synchronization Activity
           </span>
-          <div className="border rounded-2xl overflow-hidden divide-y divide-current/10 text-xs">
+          <div className="border rounded-2xl overflow-hidden divide-y divide-current/10 text-sm">
             {config.syncHistory.map((log) => (
               <div key={log.id} className="p-3 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
