@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { FileItem, FileType, SortDirection, SortField, ThemeMode, ViewMode } from '../types';
 import { formatDate, formatFileSize, getFileExtensionColor } from '../utils/fileUtils';
+import { useImageIcons } from '../hooks/useImageIcons';
+import { getFileImageUrl, getFolderImageUrl } from '../services/imageIconService';
 
 interface FileExplorerViewProps {
   files: FileItem[];
@@ -77,11 +79,38 @@ export const FileExplorerView: React.FC<FileExplorerViewProps> = ({
     y: number;
     targetFile: FileItem | null;
   } | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Render appropriate file icon
-  const getIconForFile = (file: FileItem) => {
+  // Image-server icon substitution (live mode). When the image service is UP
+  // we render folder/file-type icons from it; on load failure or when the
+  // service is unavailable we fall back to the local lucide icon set (the
+  // documented fallback — no fabricated live data is shown).
+  const { live, available } = useImageIcons();
+  const useImageIconsForFile = live && available === true;
+
+  const markImageFailed = (id: string) => {
+    setFailedImages((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  };
+
+  const markImageLoaded = (id: string) => {
+    setLoadedImages((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  };
+
+  // Local lucide icon box (mock mode or image-service fallback)
+  const getLocalIconForFile = (file: FileItem) => {
     if (file.isFolder) {
       return (
         <div className="w-12 h-12 rounded-xl bg-[#334155] text-[#38bdf8] flex items-center justify-center font-bold shadow-md transition-transform group-hover:scale-105">
@@ -134,6 +163,31 @@ export const FileExplorerView: React.FC<FileExplorerViewProps> = ({
           </div>
         );
     }
+  };
+
+  // Render appropriate file icon — image-server substitution when live,
+  // falling back to the local lucide icon on error/unavailability.
+  const getIconForFile = (file: FileItem) => {
+    if (useImageIconsForFile && !failedImages.has(file.id)) {
+      const src = file.isFolder ? getFolderImageUrl(file.name) : getFileImageUrl(file.name);
+      return (
+        <div className="w-12 h-12 rounded-xl bg-[#1e293b] flex items-center justify-center shadow-md transition-transform group-hover:scale-105 overflow-hidden">
+          <img
+            src={src}
+            alt={file.name}
+            // nexus-console fade-in: hidden until the image actually loads,
+            // then fades in; on error the whole icon falls back to lucide.
+            className={`w-10 h-10 object-contain transition-opacity duration-300 ${
+              loadedImages.has(file.id) ? 'opacity-100' : 'opacity-0'
+            }`}
+            draggable={false}
+            onLoad={() => markImageLoaded(file.id)}
+            onError={() => markImageFailed(file.id)}
+          />
+        </div>
+      );
+    }
+    return getLocalIconForFile(file);
   };
 
   // Drag & Drop handlers for file reordering/moving
