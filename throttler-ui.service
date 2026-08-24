@@ -1,0 +1,15 @@
+[Unit]
+Description=Throttler UI - File Manager & Search
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/codex/dev/nexus/angular/throttler-ui
+ExecStart=/home/codex/.nvm/versions/node/v24.15.0/bin/node /home/codex/dev/nexus/angular/throttler-ui/dist/server.cjs
+Environment=PORT=4211
+Environment=NODE_ENV=production
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   FileItem,
   ThemeMode,
@@ -21,14 +21,20 @@ import { ShortcutsModal } from './components/ShortcutsModal';
 import { NewItemModal, RenameModal, TagModal } from './components/ActionModals';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { detectFileType } from './utils/fileUtils';
+import { fileSystem, isLiveFileMode, FsEntry } from './services/fileSystemClient';
 
 const STORAGE_KEY_FILES = 'explorernova_files_v1';
 const STORAGE_KEY_THEME = 'explorernova_theme_v1';
 const STORAGE_KEY_SHORTCUTS = 'explorernova_shortcuts_v1';
 
 export default function App() {
+  // Live mode: files come from the real file-system-server; mock mode keeps
+  // the INITIAL_FILES + localStorage path. Selected via VITE_THROTTLER_FILE_MODE.
+  const liveFileMode = isLiveFileMode();
+
   // 1. Storage & Files State
   const [files, setFiles] = useState<FileItem[]>(() => {
+    if (liveFileMode) return [];
     try {
       const saved = localStorage.getItem(STORAGE_KEY_FILES);
       if (saved) return JSON.parse(saved);
@@ -38,17 +44,29 @@ export default function App() {
     return INITIAL_FILES;
   });
 
-  // Save files state to local storage
+  // Live file-service errors — surfaced visibly; never fall back to INITIAL_FILES.
+  const [liveError, setLiveError] = useState<string | null>(null);
+
+  // Lazy live folder tree: folderId ('' = root) → its loaded child folders.
+  // Children are fetched from the file service only when a folder is expanded
+  // (or on mount for the root), so the sidebar never walks the whole tree.
+  const [folderChildren, setFolderChildren] = useState<Record<string, FileItem[]>>({});
+  const folderChildrenRef = useRef<Record<string, FileItem[]>>({});
+
+  // Save files state to local storage (mock mode only)
   useEffect(() => {
+    if (liveFileMode) return;
     try {
       localStorage.setItem(STORAGE_KEY_FILES, JSON.stringify(files));
     } catch (e) {
       console.error('Failed to save files:', e);
     }
-  }, [files]);
+  }, [files, liveFileMode]);
 
   // 2. Navigation & Selection State
-  const [currentFolderId, setCurrentFolderId] = useState<string | null>('folder-react19');
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(
+    liveFileMode ? null : 'folder-react19'
+  );
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
   const [clipboardFileIds, setClipboardFileIds] = useState<string[]>([]);
 
@@ -215,6 +233,85 @@ export default function App() {
     sortDirection,
   ]);
 
+  // ── Live file-system-server integration ──────────────────────────
+  // Directory path for the current folder ('' = sandbox root).
+  const liveDirPath = (): string =>
+    currentFolderId === null || currentFolderId === 'root' ? '' : currentFolderId;
+
+  // Map a file-system-server entry to the FileItem model. Folder/file ids are
+  // the fs-relative paths, so navigation + CRUD map 1:1 onto the real service.
+  const entryToFileItem = (e: FsEntry): FileItem => {
+    const isFolder = e.type === 'directory';
+    const parts = e.path.split('/');
+    const name = parts[parts.length - 1] || e.name;
+    const parentPath = parts.slice(0, -1).join('/');
+    return {
+      id: e.path,
+      name,
+      parentId: parentPath ? parentPath : 'root',
+      isFolder,
+      fileType: isFolder ? 'folder' : detectFileType(name),
+      size: isFolder ? 4096 : (e.size ?? 0),
+      updatedAt: '',
+      content: undefined,
+      tags: [],
+      cloudSyncStatus: 'synced',
+    };
+  };
+
+  const reloadLiveFiles = useCallback(() => {
+    if (!liveFileMode) return;
+    fileSystem
+      .list(liveDirPath())
+      .then((entries) => {
+        setFiles(entries.map(entryToFileItem));
+        setLiveError(null);
+      })
+      .catch((err: Error) => {
+        // Live errors never fall back to INITIAL_FILES — surface the error.
+        setFiles([]);
+        setLiveError(err?.message || 'Failed to load files from file-system-server');
+      });
+  }, [liveFileMode, currentFolderId]);
+
+  // Load (and cache) the child folders of a folder. '' = root. Returns the
+  // cached list so callers can render immediately; failures yield [].
+  const loadFolderChildren = useCallback(
+    async (folderId: string): Promise<FileItem[]> => {
+      if (!liveFileMode) return [];
+      const key = folderId === 'root' ? '' : folderId;
+      const cached = folderChildrenRef.current[key];
+      if (cached) return cached;
+      try {
+        const entries = await fileSystem.list(key);
+        const children = entries
+          .filter((e) => e.type === 'directory')
+          .map(entryToFileItem);
+        const next = { ...folderChildrenRef.current, [key]: children };
+        folderChildrenRef.current = next;
+        setFolderChildren(next);
+        return children;
+      } catch {
+        return [];
+      }
+    },
+    [liveFileMode]
+  );
+
+  // Drop the lazy cache and re-load the root so folder CRUD is reflected.
+  const refreshFolderTree = useCallback(() => {
+    folderChildrenRef.current = {};
+    setFolderChildren({});
+    void loadFolderChildren('');
+  }, [loadFolderChildren]);
+
+  // Load the real file tree on mount + on folder navigation (live mode).
+  useEffect(() => {
+    if (!liveFileMode) return;
+    reloadLiveFiles();
+    void loadFolderChildren('');
+  }, [liveFileMode, reloadLiveFiles, loadFolderChildren]);
+
   // Selection handlers
   const handleToggleSelectFile = useCallback((id: string, isMulti: boolean) => {
     setSelectedFileIds((prev) => {
@@ -242,6 +339,23 @@ export default function App() {
     const isFolder = type === 'folder';
     const fileType = isFolder ? 'folder' : detectFileType(name);
 
+    if (liveFileMode) {
+      const parent = liveDirPath();
+      const target = parent ? `${parent}/${name}` : name;
+      const op = isFolder
+        ? fileSystem.mkdir(target)
+        : fileSystem.newFile(parent, name).then(() =>
+            content ? fileSystem.write(target, content) : undefined
+          );
+      op
+        .then(() => {
+          reloadLiveFiles();
+          refreshFolderTree();
+        })
+        .catch((err: Error) => setLiveError(err?.message || 'Failed to create item'));
+      return;
+    }
+
     const newItem: FileItem = {
       id: `file-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name,
@@ -259,6 +373,16 @@ export default function App() {
   };
 
   const handleRenameFile = (fileId: string, newName: string) => {
+    if (liveFileMode) {
+      fileSystem
+        .rename(fileId, newName)
+        .then(() => {
+          reloadLiveFiles();
+          refreshFolderTree();
+        })
+        .catch((err: Error) => setLiveError(err?.message || 'Failed to rename'));
+      return;
+    }
     setFiles((prev) =>
       prev.map((f) =>
         f.id === fileId
@@ -274,6 +398,23 @@ export default function App() {
   };
 
   const handleDeleteFiles = (idsToDelete: string[]) => {
+    if (liveFileMode) {
+      const ops = idsToDelete.map((id) => {
+        const item = files.find((f) => f.id === id);
+        if (!item) return Promise.resolve();
+        if (item.isFolder) return fileSystem.rmdir(id);
+        const parent = id.split('/').slice(0, -1).join('/');
+        return fileSystem.deleteFile(parent, item.name);
+      });
+      Promise.all(ops)
+        .then(() => {
+          reloadLiveFiles();
+          refreshFolderTree();
+        })
+        .catch((err: Error) => setLiveError(err?.message || 'Failed to delete'));
+      setSelectedFileIds(new Set());
+      return;
+    }
     setFiles((prev) =>
       prev.map((f) => {
         if (idsToDelete.includes(f.id)) {
@@ -287,12 +428,30 @@ export default function App() {
   };
 
   const handleTogglePinFile = (file: FileItem) => {
+    if (liveFileMode) return; // pinning is a mock-only concept
     setFiles((prev) =>
       prev.map((f) => (f.id === file.id ? { ...f, pinned: !f.pinned } : f))
     );
   };
 
   const handleMoveFiles = (fileIds: string[], targetFolderId: string | null) => {
+    if (liveFileMode) {
+      const target =
+        targetFolderId === null || targetFolderId === 'root' ? '' : targetFolderId;
+      const ops = fileIds.map((id) => {
+        const name = id.split('/').pop() || id;
+        const dest = target ? `${target}/${name}` : name;
+        return fileSystem.move(id, dest);
+      });
+      Promise.all(ops)
+        .then(() => {
+          reloadLiveFiles();
+          refreshFolderTree();
+        })
+        .catch((err: Error) => setLiveError(err?.message || 'Failed to move'));
+      setSelectedFileIds(new Set());
+      return;
+    }
     setFiles((prev) =>
       prev.map((f) =>
         fileIds.includes(f.id)
@@ -308,6 +467,12 @@ export default function App() {
   };
 
   const handleSaveFileContent = (fileId: string, newContent: string) => {
+    if (liveFileMode) {
+      fileSystem
+        .write(fileId, newContent)
+        .catch((err: Error) => setLiveError(err?.message || 'Failed to save file'));
+      return;
+    }
     setFiles((prev) =>
       prev.map((f) =>
         f.id === fileId
@@ -323,6 +488,7 @@ export default function App() {
   };
 
   const handleSaveTags = (fileIds: string[], tags: string[]) => {
+    if (liveFileMode) return; // tags are a mock-only concept
     setFiles((prev) =>
       prev.map((f) => (fileIds.includes(f.id) ? { ...f, tags } : f))
     );
@@ -331,6 +497,15 @@ export default function App() {
   // Import Bookmark directly into active folder from Google Search Grounding pane!
   const handleAddBookmarkToFileExplorer = (title: string, url: string, description?: string) => {
     const filename = `${title.replace(/[^a-zA-Z0-9 -]/g, '').slice(0, 30)}.url`;
+    if (liveFileMode) {
+      const parent = liveDirPath();
+      const target = parent ? `${parent}/${filename}` : filename;
+      fileSystem
+        .write(target, url)
+        .then(reloadLiveFiles)
+        .catch((err: Error) => setLiveError(err?.message || 'Failed to add bookmark'));
+      return;
+    }
     const bookmarkItem: FileItem = {
       id: `bm-${Date.now()}`,
       name: filename,
@@ -349,6 +524,22 @@ export default function App() {
 
   // Upload external desktop files drag-dropped into app
   const handleUploadExternalFiles = (filesList: FileList) => {
+    if (liveFileMode) {
+      const parent = liveDirPath();
+      Array.from(filesList).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const text = e.target?.result as string;
+          const target = parent ? `${parent}/${file.name}` : file.name;
+          fileSystem
+            .write(target, text || `[Binary or uploaded file content: ${file.name}]`)
+            .then(reloadLiveFiles)
+            .catch((err: Error) => setLiveError(err?.message || 'Failed to upload'));
+        };
+        reader.readAsText(file);
+      });
+      return;
+    }
     Array.from(filesList).forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -370,6 +561,24 @@ export default function App() {
       reader.readAsText(file);
     });
   };
+
+  // Open a file preview — in live mode the content is fetched from the real
+  // file-service (files are listed without bodies).
+  const handleOpenFilePreview = useCallback(
+    (file: FileItem) => {
+      if (!liveFileMode || file.isFolder) {
+        setPreviewFile(file);
+        return;
+      }
+      fileSystem
+        .read(file.id)
+        .then((content) => setPreviewFile({ ...file, content }))
+        .catch((err: Error) =>
+          setLiveError(err?.message || 'Failed to read file from file-system-server')
+        );
+    },
+    [liveFileMode]
+  );
 
   // Trigger Cloud Sync
   const handleTriggerSync = () => {
@@ -488,11 +697,20 @@ export default function App() {
         totalFilesCount={files.length}
       />
 
+      {/* Live file-service error banner (never falls back to INITIAL_FILES) */}
+      {liveError && (
+        <div className="px-4 py-2 text-xs font-mono text-rose-300 bg-rose-950/40 border-b border-rose-900/50">
+          ⚠ {liveError}
+        </div>
+      )}
+
       {/* Main Content Workspace: Sidebar + File Explorer View + Active Folder Search Pane */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar */}
         <Sidebar
           files={files}
+          folderChildren={liveFileMode ? folderChildren : undefined}
+          onLoadFolderChildren={loadFolderChildren}
           currentFolderId={currentFolderId}
           onNavigateToFolder={(folderId) => {
             setCurrentFolderId(folderId);
@@ -531,7 +749,7 @@ export default function App() {
             setCurrentFolderId(folderId);
             setSelectedFileIds(new Set());
           }}
-          onOpenFilePreview={setPreviewFile}
+          onOpenFilePreview={handleOpenFilePreview}
           onRenameFile={setRenameTarget}
           onDeleteFiles={handleDeleteFiles}
           onTogglePinFile={handleTogglePinFile}

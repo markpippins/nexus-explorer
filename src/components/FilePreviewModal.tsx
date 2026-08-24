@@ -74,7 +74,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             </div>
             <div>
               <h2 className="font-bold text-base tracking-tight">{file.name}</h2>
-              <p className="text-xs opacity-60">
+              <p className="text-sm opacity-60">
                 {file.fileType.toUpperCase()} • {formatFileSize(file.size)} • {formatDate(file.updatedAt)}
               </p>
             </div>
@@ -84,7 +84,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-500"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-500"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Edit File</span>
@@ -92,7 +92,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             ) : (
               <button
                 onClick={handleSave}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-500"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Save Changes</span>
@@ -101,7 +101,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
             <button
               onClick={handleCopy}
-              className="p-2 rounded-xl border border-current/10 hover:bg-black/5 dark:hover:bg-white/5 text-xs"
+              className="p-2 rounded-xl border border-current/10 hover:bg-black/5 dark:hover:bg-white/5 text-sm"
               title="Copy Content"
             >
               {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -109,7 +109,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl border border-current/10 hover:bg-black/5 dark:hover:bg-white/5 text-xs opacity-60 hover:opacity-100"
+              className="p-2 rounded-xl border border-current/10 hover:bg-black/5 dark:hover:bg-white/5 text-sm opacity-60 hover:opacity-100"
             >
               <X className="w-4 h-4" />
             </button>
@@ -125,13 +125,13 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 <Globe className="w-16 h-16 text-cyan-400 animate-pulse" />
                 <div>
                   <h3 className="font-bold text-lg">{file.name}</h3>
-                  <p className="text-xs opacity-60 font-mono mt-1">{file.content}</p>
+                  <p className="text-sm opacity-60 font-mono mt-1">{file.content}</p>
                 </div>
                 <a
                   href={file.content}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-6 py-2.5 rounded-xl bg-cyan-600 text-white text-xs font-bold hover:bg-cyan-500 flex items-center gap-2 shadow-lg shadow-cyan-950/40"
+                  className="px-6 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-bold hover:bg-cyan-500 flex items-center gap-2 shadow-lg shadow-cyan-950/40"
                 >
                   <span>Launch Web Link</span>
                   <ExternalLink className="w-4 h-4" />
@@ -149,17 +149,17 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className={`w-full h-full p-4 rounded-2xl border outline-none text-xs leading-relaxed ${editorBg}`}
+                className={`w-full h-full p-4 rounded-2xl border outline-none text-sm leading-relaxed ${editorBg}`}
               />
             ) : (
-              <pre className={`w-full h-full p-4 rounded-2xl border overflow-auto text-xs whitespace-pre-wrap leading-relaxed ${editorBg}`}>
+              <pre className={`w-full h-full p-4 rounded-2xl border overflow-auto text-sm whitespace-pre-wrap leading-relaxed ${editorBg}`}>
                 {content || '// Empty file content'}
               </pre>
             )}
           </div>
 
           {/* Metadata Sidebar */}
-          <div className="w-64 border-l border-current/10 p-5 space-y-4 text-xs opacity-90 hidden md:block shrink-0">
+          <div className="w-64 border-l border-current/10 p-5 space-y-4 text-sm opacity-90 hidden md:block shrink-0">
             <div className="text-[10px] font-bold uppercase tracking-wider opacity-50">
               File Properties
             </div>

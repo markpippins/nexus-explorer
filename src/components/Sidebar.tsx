@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Folder,
   FolderOpen,
@@ -16,9 +16,59 @@ import {
 } from 'lucide-react';
 import { FileItem, ThemeMode } from '../types';
 import { formatFileSize } from '../utils/fileUtils';
+import { useImageIcons } from '../hooks/useImageIcons';
+import { getFolderImageUrl } from '../services/imageIconService';
+
+/** Folder icon using the nexus-console image-substitution technique: when
+ *  live and the image service is UP, render the folder's image from the image
+ *  server (fade-in once loaded); on load failure or unavailability, fall back
+ *  to the lucide folder icon. */
+function FolderIcon({
+  name,
+  isExpanded,
+  live,
+  available,
+}: {
+  name: string;
+  isExpanded: boolean;
+  live: boolean;
+  available: boolean | null;
+}) {
+  const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  if (live && available === true && !failed) {
+    return (
+      <div className="relative w-4 h-4 shrink-0">
+        <img
+          src={getFolderImageUrl(name)}
+          alt={name}
+          className={`w-4 h-4 object-cover rounded-sm transition-opacity duration-300 ${
+            loaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          draggable={false}
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+        />
+      </div>
+    );
+  }
+  return isExpanded ? (
+    <FolderOpen className="w-4 h-4 text-amber-400 shrink-0" />
+  ) : (
+    <Folder className="w-4 h-4 text-amber-400 shrink-0" />
+  );
+}
 
 interface SidebarProps {
   files: FileItem[];
+  /** Lazy-loaded child folders per folder id ('' = root) — provided in live
+   *  mode so the sidebar fetches each folder's children on demand instead of
+   *  receiving a full tree. When undefined, the tree is derived from `files`. */
+  folderChildren?: Record<string, FileItem[]>;
+  /** Fetch + cache a folder's children (live mode). Called on expand and to
+   *  reveal the active folder's path. */
+  onLoadFolderChildren?: (folderId: string) => void;
   currentFolderId: string | null;
   onNavigateToFolder: (folderId: string | null) => void;
   selectedTag: string | null;
@@ -36,6 +86,8 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   files,
+  folderChildren,
+  onLoadFolderChildren,
   currentFolderId,
   onNavigateToFolder,
   selectedTag,
@@ -56,9 +108,72 @@ export const Sidebar: React.FC<SidebarProps> = ({
     'folder-ai-ml': true,
   });
 
+  // Image-service state for folder icon substitution (nexus-console technique).
+  const { live, available } = useImageIcons();
+
   const toggleFolderExpand = (folderId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setExpandedFolders((prev) => ({ ...prev, [folderId]: !prev[folderId] }));
+    setExpandedFolders((prev) => {
+      const next = { ...prev, [folderId]: !prev[folderId] };
+      // Lazy-load this folder's children the first time it's expanded.
+      if (next[folderId] && folderChildren && folderChildren[folderId] === undefined) {
+        onLoadFolderChildren?.(folderId);
+      }
+      return next;
+    });
+  };
+
+  // Auto-expand the ancestors of the currently open folder so the tree always
+  // reveals the active location. In live mode folder ids are fs paths, so
+  // ancestors come from the path and are lazy-loaded on demand; in mock mode
+  // the parentId chain is walked. Only ever adds expansions.
+  useEffect(() => {
+    if (!currentFolderId) return;
+    const toExpand = new Set<string>();
+    if (folderChildren) {
+      const parts = currentFolderId.split('/');
+      for (let i = 1; i < parts.length; i++) {
+        const anc = parts.slice(0, i).join('/');
+        toExpand.add(anc);
+        onLoadFolderChildren?.(anc);
+      }
+    } else {
+      let id: string | null = currentFolderId;
+      let guard = 0;
+      while (id && guard++ < 100) {
+        const folder = files.find((f) => f.id === id && f.isFolder);
+        if (!folder) break;
+        const parent =
+          folder.parentId === 'root' || folder.parentId === null ? null : folder.parentId;
+        if (!parent) break;
+        toExpand.add(parent);
+        id = parent;
+      }
+    }
+    if (toExpand.size === 0) return;
+    setExpandedFolders((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const fid of toExpand) {
+        if (!next[fid]) {
+          next[fid] = true;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [currentFolderId, folderChildren, files, onLoadFolderChildren]);
+
+  // Children of a folder. Live mode: from the lazy-loaded map ('' = root);
+  // mock mode: derived from the current `files` list.
+  const getChildren = (parentId: string | null): FileItem[] => {
+    if (folderChildren) {
+      const key = parentId === null || parentId === 'root' ? '' : parentId;
+      return folderChildren[key] ?? [];
+    }
+    return files.filter(
+      (f) => f.isFolder && (f.parentId === parentId || (parentId === 'root' && f.parentId === null))
+    );
   };
 
   // Collect all unique tags
@@ -99,9 +214,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       : 'bg-slate-200 text-slate-900 border-r-2 border-slate-900 font-medium';
 
   const renderFolderTree = (parentId: string | null, depth = 0) => {
-    const childFolders = files.filter(
-      (f) => f.isFolder && (f.parentId === parentId || (parentId === 'root' && f.parentId === null))
-    );
+    const childFolders = getChildren(parentId);
 
     if (childFolders.length === 0) return null;
 
@@ -110,7 +223,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {childFolders.map((folder) => {
           const isExpanded = expandedFolders[folder.id];
           const isSelected = currentFolderId === folder.id;
-          const subChildren = files.filter((f) => f.isFolder && f.parentId === folder.id);
+          // In live (lazy) mode a folder may have unloaded children, so the
+          // expand affordance is always shown; mock mode only shows it when
+          // children are known to exist.
+          const subChildren = getChildren(folder.id);
+          const hasChildrenHint = folderChildren ? true : subChildren.length > 0;
 
           return (
             <div key={folder.id} style={{ paddingLeft: `${depth * 12}px` }}>
@@ -119,11 +236,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onNavigateToFolder(folder.id);
                   onSelectTag(null);
                 }}
-                className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm cursor-pointer transition-colors ${
                   isSelected ? itemActive : itemHover
                 }`}
               >
-                {subChildren.length > 0 ? (
+                {hasChildrenHint ? (
                   <button
                     onClick={(e) => toggleFolderExpand(folder.id, e)}
                     className="p-0.5 hover:bg-black/10 dark:hover:bg-white/10 rounded"
@@ -138,11 +255,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="w-4" />
                 )}
 
-                {isExpanded ? (
-                  <FolderOpen className="w-4 h-4 text-amber-400 shrink-0" />
-                ) : (
-                  <Folder className="w-4 h-4 text-amber-400 shrink-0" />
-                )}
+                <FolderIcon
+                  name={folder.name}
+                  isExpanded={isExpanded}
+                  live={live}
+                  available={available}
+                />
 
                 <span className="truncate flex-1">{folder.name}</span>
 
@@ -151,7 +269,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </div>
 
-              {isExpanded && renderFolderTree(folder.id, depth + 1)}
+              {isExpanded &&
+                (folderChildren && folderChildren[folder.id] === undefined ? (
+                  // Children not fetched yet — brief loading placeholder until
+                  // the lazy load resolves (then it renders the real tree).
+                  <div
+                    style={{ paddingLeft: `${(depth + 1) * 12 + 8}px` }}
+                    className="py-0.5 text-[10px] font-mono text-gray-500"
+                  >
+                    loading…
+                  </div>
+                ) : (
+                  renderFolderTree(folder.id, depth + 1)
+                ))}
             </div>
           );
         })}
@@ -172,7 +302,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onNavigateToFolder(null);
             onSelectTag(null);
           }}
-          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-colors ${
             currentFolderId === null && !showFavoritesOnly && !showTrashOnly && !selectedTag
               ? itemActive
               : itemHover
@@ -189,7 +319,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={onToggleFavoritesOnly}
-          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-colors ${
             showFavoritesOnly ? itemActive : itemHover
           }`}
         >
@@ -204,7 +334,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={onToggleTrashOnly}
-          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-sm font-medium transition-colors ${
             showTrashOnly ? itemActive : itemHover
           }`}
         >
@@ -223,7 +353,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
           <button
             onClick={() => onOpenNewItemModal('folder')}
-            className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-xs opacity-70 hover:opacity-100"
+            className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-sm opacity-70 hover:opacity-100"
             title="Create Folder"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -265,7 +395,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-3 mt-auto space-y-3">
         {/* Storage Bar */}
         <div className="p-3 rounded-2xl border border-current opacity-90 bg-black/5 dark:bg-white/5 space-y-2">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-sm">
             <span className="font-semibold opacity-80">Cloud Storage</span>
             <span className="text-[10px] opacity-60">{formatFileSize(totalSizeBytes)} / 15 GB</span>
           </div>
@@ -290,7 +420,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center gap-2">
               <Cloud className="w-4 h-4 text-cyan-400" />
               <div>
-                <p className="text-xs font-bold">Cloud Sync Status</p>
+                <p className="text-sm font-bold">Cloud Sync Status</p>
                 <p className="text-[10px] opacity-60">Auto Sync Active</p>
               </div>
             </div>

@@ -164,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
             {searchQuery && (
               <button
                 onClick={() => onSearchChange('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs opacity-50 hover:opacity-100"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm opacity-50 hover:opacity-100"
               >
                 ✕
               </button>
@@ -175,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => onOpenNewItemModal('file')}
-              className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl transition-colors ${
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-sm font-semibold rounded-xl transition-colors ${
                 theme === 'steel'
                   ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
                   : 'bg-blue-600 hover:bg-blue-500 text-white'
@@ -187,7 +187,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               onClick={() => onOpenNewItemModal('folder')}
-              className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl border transition-colors ${buttonInactive}`}
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-sm font-semibold rounded-xl border transition-colors ${buttonInactive}`}
               title="New Folder (Ctrl+Shift+N)"
             >
               <Folder className="w-3.5 h-3.5 text-amber-400" />
@@ -248,7 +248,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Cloud Sync Quick Indicator */}
           <button
             onClick={onOpenCloudModal}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-xl border transition-all ${buttonInactive}`}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium rounded-xl border transition-all ${buttonInactive}`}
             title="Cloud Storage Synchronization"
           >
             {isSyncing ? (
@@ -262,7 +262,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Dual-Pane Search Grounding Toggle */}
           <button
             onClick={onToggleSearchPane}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-xl border transition-all ${
               isSearchPaneOpen
                 ? theme === 'steel'
                   ? 'bg-cyan-600 text-white border-cyan-500 shadow-md shadow-cyan-900/40'
